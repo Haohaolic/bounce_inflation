@@ -12,7 +12,7 @@ double epsilon_c = 3.1, epsilon_e = .1, H_con_m = -1e-4, H_exp_m = 1e-4, Delta_e
 inline double Bessel_1(double nu, double x){
 	if(x>3e3){
 		return sqrt(2 / pi / x) * cos(x - nu * pi / 2. - pi / 4.);
-	}	
+	}
     double result = .0, ak = 1 / (pow(2., nu) * tgamma(nu + 1.));
     int kn;
     double y0, y1, y2, dx, x0;
@@ -311,8 +311,8 @@ inline double power_spectrum_bounce_inflation(double k){
 }
 
 int main(int argc,char* argv[]){
-    //int cpu_counts=std::thread::hardware_concurrency();
-    int cpu_counts=20;
+   int cpu_counts=std::thread::hardware_concurrency()-4;
+    //int cpu_counts=24;
     double k[cpu_counts], ps, pst, delta_R;
     std::future<double>threads[cpu_counts];
     epsilon_c=atof(argv[1]);
@@ -320,8 +320,7 @@ int main(int argc,char* argv[]){
     H_con_m=atof(argv[3]);
     H_exp_m=atof(argv[4]);
     Delta_eta_B=atof(argv[5]);
-    //A_s=atof(argv[6]);
-    //c_s=atof(argv[7]);
+    //c_s=atof(argv[6]);
     if(Delta_eta_B==.0){
 	    Delta_eta_B=1e-10;
     }
@@ -330,7 +329,7 @@ int main(int argc,char* argv[]){
     for(int a=0;a<1000;a++){
         if(a>=cpu_counts){
 		    delta_R=H_exp_m*H_exp_m/(8*pi*pi*epsilon_e);
-            ps=delta_R*threads[a%cpu_counts].get();
+            ps=delta_R*threads[a%cpu_counts].get()*pow(k[a%cpu_counts]/0.05,3-(epsilon_e-3)/(epsilon_e-1));
             pst=ps*16*epsilon_e;
             printf("%e %e %e\n",k[a%cpu_counts],ps,pst);
         }
@@ -339,12 +338,10 @@ int main(int argc,char* argv[]){
     }
     for(int a=1000;a<1000+cpu_counts;a++){
 	delta_R=H_exp_m*H_exp_m/(8*pi*pi*epsilon_e);
-        ps=delta_R*threads[a%cpu_counts].get();
+        ps=delta_R*threads[a%cpu_counts].get()*pow(k[a%cpu_counts]/0.05,3-(epsilon_e-3)/(epsilon_e-1));
         pst=ps*16*epsilon_e;
         printf("%e %e %e\n",k[a%cpu_counts],ps,pst);
     }
     return 0;
 }
-
-//g++ spectrum.cpp -o power_spectrum_bounce_inflation -lpthread
 
